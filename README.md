@@ -104,11 +104,11 @@ return Split::respond($data)->component('Products/Index');
 
 ## Requirements
 
-| | |
-|---|---|
-| PHP | ^8.2 |
-| Laravel | 11 · 12 · 13 |
-| inertiajs/inertia-laravel | ^2.0 |
+|                           |              |
+| ------------------------- | ------------ |
+| PHP                       | ^8.2         |
+| Laravel                   | 11 · 12 · 13 |
+| inertiajs/inertia-laravel | ^2.0         |
 
 The service provider and `Split` facade alias are auto-discovered.
 
