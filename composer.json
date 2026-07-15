@@ -2,6 +2,7 @@
   "name": "splitstack/inertia-split",
   "description": "One controller, two presentations. Serve Inertia or JSON from the same action based on request context.",
   "type": "library",
+  "version": "0.1.0",
   "license": "MIT",
   "require": {
     "php": "^8.2",
