@@ -1,0 +1,137 @@
+name: Tests
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ["8.2", "8.3", "8.4"]
+        laravel: ["11.*", "12.*", "13.*"]
+        stability: [prefer-stable]
+        include:
+          - laravel: "11.*"
+            testbench: "9.*"
+          - laravel: "12.*"
+            testbench: "10.*"
+          - laravel: "13.*"
+            testbench: "11.*"
+        exclude:
+          - php: "8.2"
+            laravel: "13.*"
+
+    name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: dom, curl, libxml, mbstring, pdo, sqlite, pdo_sqlite
+          coverage: none
+
+      - name: Install dependencies
+        run: |
+          composer config --json 'policy.advisories.ignore-id' '["PKSA-m5cs-t1y6-qpcs","PKSA-3r5d-mb8f-1qw9","PKSA-mdq4-51ck-6kdq","PKSA-8qx3-n5y5-vvnd","PKSA-q46n-4fdk-zjr4","PKSA-qzrn-rnz3-85w1","PKSA-w7xr-vk7n-rstm"]'
+          composer require "laravel/framework:${{ matrix.laravel }}" --no-interaction --no-update
+          composer require "orchestra/testbench:${{ matrix.testbench }}" --dev --no-interaction --no-update
+          composer update --${{ matrix.stability }} --prefer-dist --no-interaction
+
+      - name: Run tests
+        run: composer test
+
+  test-phpstan:
+    runs-on: ubuntu-latest
+    name: PHPStan Rules
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          extensions: dom, curl, libxml, mbstring
+          coverage: none
+
+      - name: Install dependencies
+        run: |
+          composer require "laravel/framework:12.*" --no-interaction --no-update
+          composer require "orchestra/testbench:10.*" --dev --no-interaction --no-update
+          composer update --prefer-stable --prefer-dist --no-interaction
+
+      - name: Run PHPStan rule tests
+        run: composer test:phpstan
+
+  test-integration:
+    runs-on: ubuntu-latest
+    name: Integration Tests (PHP 8.3, Laravel 12)
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: rome_test
+          POSTGRES_USER: rome_test
+          POSTGRES_PASSWORD: secret
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: rome_test
+          MYSQL_USER: rome_test
+          MYSQL_PASSWORD: secret
+          MYSQL_ROOT_PASSWORD: root_secret
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping -h 127.0.0.1 -u rome_test --password=secret"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          extensions: dom, curl, libxml, mbstring, pdo, pdo_pgsql, pdo_mysql
+          coverage: none
+
+      - name: Install dependencies
+        run: |
+          composer require "laravel/framework:12.*" --no-interaction --no-update
+          composer require "orchestra/testbench:10.*" --dev --no-interaction --no-update
+          composer update --prefer-stable --prefer-dist --no-interaction
+
+      - name: Run integration tests
+        env:
+          PGSQL_HOST: 127.0.0.1
+          PGSQL_PORT: 5432
+          PGSQL_DB: rome_test
+          PGSQL_USER: rome_test
+          PGSQL_PASSWORD: secret
+          MYSQL_HOST: 127.0.0.1
+          MYSQL_PORT: 3306
+          MYSQL_DB: rome_test
+          MYSQL_USER: rome_test
+          MYSQL_PASSWORD: secret
+        run: composer test:integration
