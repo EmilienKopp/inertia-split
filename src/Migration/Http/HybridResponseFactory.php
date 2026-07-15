@@ -9,7 +9,7 @@ use Splitstack\InertiaSplit\Migration\Attributes\InertiaComponent;
 
 class HybridResponseFactory extends ResponseFactory
 {
-    public function json($data = [], $status = 200, array $headers = [], $options = 0)
+    public function json($data = [], $status = 200, array $headers = [], $options = 0): \Illuminate\Http\JsonResponse|\Inertia\Response
     {
         $component = $this->resolveInertiaComponent();
 

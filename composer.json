@@ -2,7 +2,6 @@
   "name": "splitstack/inertia-split",
   "description": "One controller, two presentations. Serve Inertia or JSON from the same action based on request context.",
   "type": "library",
-  "version": "0.1.0",
   "license": "MIT",
   "require": {
     "php": "^8.2",
@@ -12,11 +11,13 @@
     "inertiajs/inertia-laravel": "^2.0|^3.0"
   },
   "require-dev": {
+    "larastan/larastan": "^3.10",
     "orchestra/testbench": "^9.0|^10.0",
     "pestphp/pest": "^3.0"
   },
   "scripts": {
-    "test": "php vendor/bin/pest"
+    "test": "php vendor/bin/pest",
+    "test:phpstan": "php vendor/bin/phpstan analyse --memory-limit=2G"
   },
   "autoload": {
     "psr-4": {
